@@ -34,14 +34,15 @@ def index(request):
             likes_count=Count('likes')
         ).order_by(
             "-likes_count"
-        )[:5]
+        )[:5].prefetch_related('author')
 
-    fresh_posts = Post.objects.order_by('published_at')
-    most_fresh_posts = list(fresh_posts)[-5:]
+    most_fresh_posts = Post.objects.order_by(
+        '-published_at'
+        )[:5].prefetch_related('author')
 
-    tags = Tag.objects.all()
-    popular_tags = sorted(tags, key=get_related_posts_count)
-    most_popular_tags = popular_tags[-5:]
+    most_popular_tags = Tag.objects.all().annotate(
+        tags_count=Count('posts')
+        ).order_by('-tags_count')[:5]
 
     context = {
         'most_popular_posts': [
