@@ -1,6 +1,22 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.db.models import Count
+
+
+class PostQuerySet(models.QuerySet):
+
+    def year(self, year):
+        posts_at_year = self.filter(published_at__year=year).order_by('published_at')
+        return posts_at_year
+
+
+class TagsQuerySet(models.QuerySet):
+
+    def popular(self, count):
+        return self.annotate(
+            tags_count=Count('posts')
+        ).order_by('-tags_count')[:count]
 
 
 class Post(models.Model):
@@ -30,6 +46,8 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse('post_detail', args={'slug': self.slug})
+    
+    objects = PostQuerySet.as_manager()
 
     class Meta:
         ordering = ['-published_at']
@@ -48,6 +66,8 @@ class Tag(models.Model):
 
     def get_absolute_url(self):
         return reverse('tag_filter', args={'tag_title': self.slug})
+
+    objects = TagsQuerySet.as_manager()
 
     class Meta:
         ordering = ['title']
@@ -76,3 +96,5 @@ class Comment(models.Model):
         ordering = ['published_at']
         verbose_name = 'комментарий'
         verbose_name_plural = 'комментарии'
+
+
