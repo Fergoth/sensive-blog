@@ -6,10 +6,10 @@ from django.db.models import Count
 
 class PostQuerySet(models.QuerySet):
 
-    def popular(self, count):
+    def popular(self):
         return self.annotate(
             likes_count=Count('likes')
-        ).order_by('-likes_count')[:count]
+        ).order_by('-likes_count')
 
     def fetch_with_comments_count(self):
         posts_ids = [post.id for post in self]
@@ -27,10 +27,10 @@ class PostQuerySet(models.QuerySet):
 
 class TagsQuerySet(models.QuerySet):
 
-    def popular(self, count):
+    def popular(self):
         return self.annotate(
             posts_count=Count('posts')
-        ).order_by('-posts_count')[:count]
+        ).order_by('-posts_count')
 
     def annotate_posts_count(self):
         return self.annotate(
