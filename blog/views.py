@@ -54,21 +54,18 @@ def index(request):
 
 def post_detail(request, slug):
     post = Post.objects.\
+        select_related('author').\
         prefetch_related(
-            Prefetch(
-                'comments',
-                queryset=Comment.objects.all().prefetch_related('author')
-            ),
             Prefetch(
                 'tags',
                 queryset=Tag.objects.all().annotate_posts_count()
-            ),
-            'author'
+            )
         ).\
         annotate(likes_count=Count('likes')).\
         get(slug=slug)
+    comments = Comment.objects.filter(post=post).select_related('author')
     serialized_comments = []
-    for comment in post.comments.all():
+    for comment in comments:
         serialized_comments.append({
             'text': comment.text,
             'published_at': comment.published_at,
